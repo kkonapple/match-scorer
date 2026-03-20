@@ -6751,10 +6751,38 @@ function loadProfileData() {
 
   // daily
   try { daily = JSON.parse(localStorage.getItem(p+'_daily')) || {}; } catch(e) { daily = {}; }
-  // hist
-  try { hist = JSON.parse(localStorage.getItem(p+'_hist')) || {}; } catch(e) { hist = {}; }
+  // hist — merge legacy unprefixed key into admin on first login
+  try {
+    const profileHist = JSON.parse(localStorage.getItem(p+'_hist') || '{}') || {};
+    const legacyHist  = JSON.parse(localStorage.getItem('soccerTeamHistory_v1') || '{}') || {};
+    if (Object.keys(legacyHist).length && p === 'admin') {
+      const merged = { ...legacyHist, ...profileHist }; // profile takes priority
+      hist = merged;
+      localStorage.setItem(p+'_hist', JSON.stringify(merged));
+      localStorage.removeItem('soccerTeamHistory_v1');
+      if(window._fbSave) window._fbSave(p, 'hist', merged);
+    } else {
+      hist = profileHist;
+    }
+  } catch(e) { hist = {}; }
   // combos
-  try { combos = JSON.parse(localStorage.getItem(p+'_combos')) || []; } catch(e) { combos = []; }
+  try {
+    const profileCombos = JSON.parse(localStorage.getItem(p+'_combos') || '[]') || [];
+    // Also check old unprefixed key and merge (one-time migration)
+    const legacyCombos = JSON.parse(localStorage.getItem('soccerCombos_v1') || '[]') || [];
+    if (legacyCombos.length && p === 'admin') {
+      // Merge legacy into profile — deduplicate by id
+      const allIds = new Set(profileCombos.map(co => co.id));
+      const merged = [...profileCombos, ...legacyCombos.filter(co => !allIds.has(co.id))];
+      combos = merged;
+      // Save merged back to profile key and clear legacy
+      localStorage.setItem(p+'_combos', JSON.stringify(merged));
+      localStorage.removeItem('soccerCombos_v1');
+      if(window._fbSave) window._fbSave(p, 'combos', merged);
+    } else {
+      combos = profileCombos;
+    }
+  } catch(e) { combos = []; }
   // leagues — fall back to embedded
   const savedLg = localStorage.getItem(p+'_leagues');
   if (savedLg) {
