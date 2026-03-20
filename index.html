@@ -6216,6 +6216,24 @@ async function predScanImage() {
     : 'image/jpeg'; // fallback
 
   try {
+    // Build known teams list from the system to help AI match names
+    const knownTeams = Object.values(LEAGUES).flat().join(', ');
+
+    const prompt = `Extract all football/soccer match selections from this betting slip image.
+
+The betting slip may be in ANY language including Greek. You MUST translate all team names to English.
+
+Here are the known English team names in the system — match each team from the slip to the closest one from this list:
+${knownTeams}
+
+Rules:
+- Translate Greek or any other language team names to their English equivalent
+- Match translated names to the closest team from the known list above
+- If a team is not in the list, still provide your best English translation
+- Return ONLY a raw JSON array, no markdown, no explanation:
+[{"homeTeam":"English Team Name","awayTeam":"English Team Name","market":"Over 2.5"},...]
+- Default market to Over 2.5 if not shown`;
+
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -6231,7 +6249,7 @@ async function predScanImage() {
           role: 'user',
           content: [
             { type: 'image', source: { type: 'base64', media_type: mediaType, data: b64 } },
-            { type: 'text', text: 'Extract all football/soccer match selections from this betting slip image. Return ONLY a raw JSON array with no markdown fences or explanation: [{"homeTeam":"Team A","awayTeam":"Team B","market":"Over 2.5"},...]. Use the exact team names shown. Default market to Over 2.5 if not visible.' }
+            { type: 'text', text: prompt }
           ]
         }]
       })
