@@ -892,7 +892,7 @@
 <div class="container">
   <header>
     <div class="header-left">
-      <h1>MATCH <span>TRACKER</span> <span style="font-size:0.55em;color:var(--muted);letter-spacing:0.06em;vertical-align:middle;">BETA v1.0</span></h1>
+      <h1>MATCH <span>TRACKER</span> <span style="font-size:0.55em;color:var(--muted);letter-spacing:0.06em;vertical-align:middle;">BETA v1.0.1</span></h1>
       <p class="subtitle">Daily results</p>
     </div>
     <div class="header-btns">
@@ -3920,25 +3920,25 @@
     <!-- League selection -->
     <div style="font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);">Select League</div>
     <div style="display:flex;flex-direction:column;gap:0.5rem;" id="api-league-list">
-      <div class="api-league-card" data-league="39" data-season="2025" data-name="Premier League">
+      <div class="api-league-card" data-league="39" data-season="2024" data-name="Premier League">
         <div class="api-league-name">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League</div>
-        <div class="api-league-meta">England · 20 teams · ~20 API calls</div>
+        <div class="api-league-meta">England · 20 teams · ~20 API calls · 2024/25 season</div>
       </div>
-      <div class="api-league-card" data-league="40" data-season="2025" data-name="Championship">
+      <div class="api-league-card" data-league="40" data-season="2024" data-name="Championship">
         <div class="api-league-name">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Championship</div>
-        <div class="api-league-meta">England · 24 teams · ~24 API calls</div>
+        <div class="api-league-meta">England · 24 teams · ~24 API calls · 2024/25 season</div>
       </div>
-      <div class="api-league-card" data-league="41" data-season="2025" data-name="League One">
+      <div class="api-league-card" data-league="41" data-season="2024" data-name="League One">
         <div class="api-league-name">🏴󠁧󠁢󠁥󠁮󠁧󠁿 League One</div>
-        <div class="api-league-meta">England · 24 teams · ~24 API calls</div>
+        <div class="api-league-meta">England · 24 teams · ~24 API calls · 2024/25 season</div>
       </div>
-      <div class="api-league-card" data-league="42" data-season="2025" data-name="League Two">
+      <div class="api-league-card" data-league="42" data-season="2024" data-name="League Two">
         <div class="api-league-name">🏴󠁧󠁢󠁥󠁮󠁧󠁿 League Two</div>
-        <div class="api-league-meta">England · 24 teams · ~24 API calls</div>
+        <div class="api-league-meta">England · 24 teams · ~24 API calls · 2024/25 season</div>
       </div>
-      <div class="api-league-card" data-league="43" data-season="2025" data-name="National League">
+      <div class="api-league-card" data-league="43" data-season="2024" data-name="National League">
         <div class="api-league-name">🏴󠁧󠁢󠁥󠁮󠁧󠁿 National League</div>
-        <div class="api-league-meta">England · 24 teams · ~24 API calls</div>
+        <div class="api-league-meta">England · 24 teams · ~24 API calls · 2024/25 season</div>
       </div>
     </div>
 
@@ -6974,9 +6974,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const openBtn = document.getElementById('apiload-open-btn');
   const closeBtn= document.getElementById('apiload-close');
   const loadBtn = document.getElementById('api-load-btn');
-  if (openBtn)  openBtn.addEventListener('click', () => requiresAuth(openApiLoadPanel));
+  if (openBtn)  openBtn.addEventListener('click', () => showToast('🚀 Coming Soon — API auto-load will be available in a future update!', 'success'));
   if (closeBtn) closeBtn.addEventListener('click', closeApiLoadPanel);
-  if (loadBtn)  loadBtn.addEventListener('click', apiLoadLeague);
+  if (loadBtn)  loadBtn.addEventListener('click', () => {
+    showToast('🚀 Coming Soon — API auto-load will be available in a future update!', 'success');
+  });
 
   document.querySelectorAll('.api-league-card').forEach(card => {
     card.addEventListener('click', () => {
