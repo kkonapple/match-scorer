@@ -864,7 +864,7 @@
       <p class="subtitle">Daily results · Over / Under 2.5</p>
     </div>
     <div class="header-btns">
-      <button class="hdr-btn hdr-btn-save" id="save-to-file-btn" title="Bake current History &amp; Teams into this HTML file — move it anywhere">💾 Save to File</button>
+      <button class="hdr-btn hdr-btn-save" id="save-to-file-btn" title="Save all current data to browser storage">💾 Save</button>
       <button class="hdr-btn hdr-btn-green" id="data-io-btn">⬇⬆ Export / Import</button>
       <input type="file" id="csv-import-input" accept=".csv" dcvalue="">
       <button class="hdr-btn hdr-btn-pink" id="edit-teams-btn">✏ Edit Data</button>
@@ -3980,8 +3980,8 @@ function load(k){ try{ return JSON.parse(localStorage.getItem(k))||{}; }catch(e)
 
 let daily  = load(DAILY_KEY);
 let hist   = load(HIST_KEY);
-const saveDaily = () => { if(_activeProfile) localStorage.setItem(_activeProfile+'_daily', JSON.stringify(daily)); };
-const saveHist  = () => { if(_activeProfile) localStorage.setItem(_activeProfile+'_hist', JSON.stringify(hist)); };
+const saveDaily = () => { if(!_activeProfile) return; localStorage.setItem(_activeProfile+'_daily', JSON.stringify(daily)); if(window._fbSave) window._fbSave(_activeProfile, 'daily', daily); };
+const saveHist  = () => { if(!_activeProfile) return; localStorage.setItem(_activeProfile+'_hist', JSON.stringify(hist)); if(window._fbSave) window._fbSave(_activeProfile, 'hist', hist); };
 
 // ── DATE HELPERS ──────────────────────────────────────────────────────────────
 const toKey = d => d.toISOString().slice(0,10);
@@ -4948,7 +4948,9 @@ function loadLeagues() {
 }
 
 function saveLeagues() {
-  if(_activeProfile) localStorage.setItem(_activeProfile+'_leagues', JSON.stringify(LEAGUES));
+  if(!_activeProfile) return;
+  localStorage.setItem(_activeProfile+'_leagues', JSON.stringify(LEAGUES));
+  if(window._fbSave) window._fbSave(_activeProfile, 'leagues', LEAGUES);
 }
 
 // Working copy during editing — we only commit on Save
@@ -5246,7 +5248,7 @@ function removeTeamFromSearch(league, teamName) {
 // ══════════════════════════════════════════════════════════════════════════════
 const COMBO_KEY = 'soccerCombos_v1';
 let combos = (() => { try { return JSON.parse(localStorage.getItem(COMBO_KEY)) || []; } catch(e) { return []; } })();
-const saveCombos = () => { if(_activeProfile) localStorage.setItem(_activeProfile+'_combos', JSON.stringify(combos)); };
+const saveCombos = () => { if(!_activeProfile) return; localStorage.setItem(_activeProfile+'_combos', JSON.stringify(combos)); if(window._fbSave) window._fbSave(_activeProfile, 'combos', combos); };
 
 let comboFilter = 'ALL';
 let comboLeagueFilter = 'ALL';
@@ -5723,56 +5725,20 @@ function renderEditLog() {
 // copying the file to another machine (no need to re-import).
 
 function saveToFile() {
-  const btn = document.getElementById('save-to-file-btn');
-  btn.textContent = '⏳ Saving…';
-  btn.classList.add('saving');
-  btn.disabled = true;
-
+  // On the hosted site, all data already auto-saves to localStorage on every change.
+  // This button explicitly flushes everything for the active profile and confirms.
+  if (!_activeProfile) { openPwModal(); return; }
   try {
-    // Build the data payload to embed
-    const payload = { leagues: LEAGUES, hist: hist, combos: combos };
-    const payloadJSON = JSON.stringify(payload);
-
-    // Write the payload directly into the embedded-data element in the live DOM
-    // BEFORE capturing outerHTML — this guarantees the tag exists and has the right content
-    const embedEl = document.getElementById('embedded-data');
-    if (!embedEl) {
-      showToast('❌ Could not locate embedded-data block', 'error');
-      btn.textContent = '💾 Save to File';
-      btn.classList.remove('saving');
-      btn.disabled = false;
-      return;
-    }
-    embedEl.textContent = '\n' + payloadJSON + '\n';
-
-    // Reset button BEFORE capturing outerHTML — otherwise the saved file
-    // opens with the button stuck in the disabled/saving state.
-    btn.textContent = '💾 Save to File';
-    btn.classList.remove('saving');
-    btn.disabled = false;
-
-    // Capture the live HTML — embedded-data is now baked in
-    const htmlSource = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
-
-    // Download the updated file using base64 data URI (no blob URL — works in all browsers)
-    const bytes  = new TextEncoder().encode(htmlSource);
-    const binary = Array.from(bytes).map(b => String.fromCharCode(b)).join('');
-    const b64    = btoa(binary);
-    const a      = document.createElement('a');
-    a.href       = 'data:text/html;charset=utf-8;base64,' + b64;
-    a.download   = 'soccer_tracker.html';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-
+    saveDaily();
+    saveHist();
+    saveCombos();
+    saveLeagues();
     const histCount   = Object.keys(hist).length;
     const leagueCount = Object.keys(LEAGUES).length;
-    const comboCount = combos.length;
-    showToast('✅ Saved! ' + histCount + ' histories, ' + leagueCount + ' leagues & ' + comboCount + ' combo' + (comboCount!==1?'s':'') + ' baked into file', 'success');
+    const comboCount  = combos.length;
+    const matchCount  = Object.values(daily).reduce((s, arr) => s + (arr||[]).length, 0);
+    showToast('✅ Saved! ' + matchCount + ' matches · ' + histCount + ' histories · ' + comboCount + ' combos', 'success');
   } catch(err) {
-    btn.textContent = '💾 Save to File';
-    btn.classList.remove('saving');
-    btn.disabled = false;
     showToast('❌ Save failed: ' + err.message, 'error');
   }
 }
@@ -6660,18 +6626,47 @@ async function checkPassword() {
 }
 
 async function activateProfile(profile) {
-  const wasProfile = _activeProfile;
   _activeProfile = profile;
   _appUnlocked = true;
 
-  // Load this profile's data into the live variables
-  loadProfileData();
-
-  // Update UI
+  // Show loading state
   const btn = document.getElementById('pw-btn');
   const labels = { admin: '👑 Admin', andro: '👤 Andro' };
-  btn.textContent = labels[profile];
+  btn.textContent = '⏳ Loading…';
   btn.classList.add('unlocked');
+
+  // Try to load from Firestore first (cloud), fall back to localStorage
+  let cloudData = null;
+  if (window._fbLoad) {
+    cloudData = await window._fbLoad(profile);
+  }
+
+  if (cloudData) {
+    // Sync cloud data into localStorage cache and live vars
+    try {
+      if (cloudData.daily)  { localStorage.setItem(profile+'_daily',  cloudData.daily);  daily  = JSON.parse(cloudData.daily)  || {}; }
+      if (cloudData.hist)   { localStorage.setItem(profile+'_hist',   cloudData.hist);   hist   = JSON.parse(cloudData.hist)   || {}; }
+      if (cloudData.combos) { localStorage.setItem(profile+'_combos', cloudData.combos); combos = JSON.parse(cloudData.combos) || []; }
+      if (cloudData.leagues) {
+        localStorage.setItem(profile+'_leagues', cloudData.leagues);
+        const parsed = JSON.parse(cloudData.leagues);
+        Object.keys(LEAGUES).forEach(k => delete LEAGUES[k]);
+        Object.assign(LEAGUES, parsed);
+        Object.keys(LEAGUES).forEach(k => LEAGUES[k].sort());
+        Object.keys(TEAM_LEAGUE).forEach(k => delete TEAM_LEAGUE[k]);
+        Object.entries(LEAGUES).forEach(([lg,ts]) => ts.forEach(t => TEAM_LEAGUE[t]=lg));
+      }
+    } catch(e) { console.warn('Cloud data parse error:', e); }
+  } else {
+    // No cloud data yet — load from localStorage (covers first login)
+    loadProfileData();
+  }
+
+  render();
+  renderHistSavedList();
+  rebuildAllDropdowns();
+
+  btn.textContent = labels[profile];
   btn.title = 'Click to switch / lock';
   sessionStorage.setItem('_aul', profile);
 }
@@ -6764,5 +6759,52 @@ document.getElementById('save-to-file-btn').addEventListener('click', () => requ
 </script>
 <div class="toast success" id="toast">✅ Team changes saved!</div>
 
+
+
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js';
+  import { getFirestore, doc, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js';
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDKS-Q8DsANPywNJbIZuSYcNIh2fIgEI64",
+    authDomain: "matchscorer-4b631.firebaseapp.com",
+    projectId: "matchscorer-4b631",
+    storageBucket: "matchscorer-4b631.firebasestorage.app",
+    messagingSenderId: "679536643363",
+    appId: "1:679536643363:web:ee81400247928ba19f5096",
+    measurementId: "G-VGS71SS8C6"
+  };
+
+  const _fbApp = initializeApp(firebaseConfig);
+  const _db    = getFirestore(_fbApp);
+
+  // Debounce timer per key — avoids hammering Firestore on rapid changes
+  const _dbTimers = {};
+
+  // Write to Firestore with 1.5s debounce
+  window._fbSave = function(profile, key, data) {
+    const timerKey = profile + '_' + key;
+    clearTimeout(_dbTimers[timerKey]);
+    _dbTimers[timerKey] = setTimeout(async () => {
+      try {
+        await setDoc(doc(_db, 'profiles', profile), { [key]: JSON.stringify(data) }, { merge: true });
+      } catch(e) { console.warn('Firestore save failed:', e.message); }
+    }, 1500);
+  };
+
+  // Load all data for a profile from Firestore
+  window._fbLoad = async function(profile) {
+    try {
+      const snap = await getDoc(doc(_db, 'profiles', profile));
+      if (snap.exists()) return snap.data();
+    } catch(e) { console.warn('Firestore load failed:', e.message); }
+    return null;
+  };
+
+  window._fbReady = true;
+  // Signal that Firebase is ready
+  window.dispatchEvent(new Event('fbReady'));
+</script>
 
 </body></html>
