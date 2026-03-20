@@ -818,6 +818,38 @@
     margin-left:auto;flex-shrink:0;
   }
 
+
+  /* ── API LOAD PANEL ── */
+  .hdr-btn-amber{background:rgba(245,158,11,0.12);border-color:#f59e0b;color:#f59e0b;}
+  .hdr-btn-amber:hover{background:rgba(245,158,11,0.22);}
+
+  .api-league-card{
+    background:var(--surface2);border:1px solid var(--border);border-radius:12px;
+    padding:0.9rem 1rem;cursor:pointer;transition:all .15s;
+  }
+  .api-league-card:hover{border-color:#f59e0b;background:rgba(245,158,11,0.06);}
+  .api-league-card.selected{border-color:#f59e0b;background:rgba(245,158,11,0.1);}
+  .api-league-name{font-size:0.9rem;font-weight:700;color:var(--text);}
+  .api-league-meta{font-size:0.7rem;color:var(--muted);margin-top:2px;}
+
+  .api-progress-bar{
+    width:100%;height:8px;background:var(--surface2);border-radius:4px;
+    overflow:hidden;border:1px solid var(--border);
+  }
+  .api-progress-fill{
+    height:100%;background:#f59e0b;border-radius:4px;
+    transition:width .3s ease;width:0%;
+  }
+  .api-progress-fill.done{background:#22c55e;}
+  .api-result-row{
+    display:flex;align-items:center;gap:8px;font-size:0.78rem;padding:4px 0;
+    border-bottom:1px solid var(--border);
+  }
+  .api-result-row:last-child{border-bottom:none;}
+  .api-result-team{flex:1;font-weight:600;color:var(--text);}
+  .api-result-scores{color:var(--muted);font-size:0.72rem;}
+  .api-result-icon{font-size:0.9rem;}
+
   @keyframes shakeX{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
 
   .hdr-btn-green{background:rgba(34,197,94,0.10);border-color:var(--green);color:var(--green);}
@@ -872,6 +904,7 @@
       <button class="hdr-btn hdr-btn-rose" id="comp-open-btn">📊 Team Comparison</button>
       <button class="hdr-btn hdr-btn-yellow" id="h2h-open-btn">⚔ H2H</button>
       <button class="hdr-btn hdr-btn-sky"  id="pred-open-btn">🔮 Predictions</button>
+      <button class="hdr-btn hdr-btn-amber" id="apiload-open-btn">⚡ API Load</button>
       <button class="hdr-btn hdr-btn-teal" id="hist-open-btn">📥 Pre-load History</button>
       <button class="hdr-btn hdr-btn-lime"   id="sr-open-btn">🎯 Success Rate</button>
       <button class="hdr-btn hdr-btn-purple" id="avg-open-btn">📊 Team Averages</button>
@@ -3872,6 +3905,74 @@
 
 
 
+
+<!-- ══ API LOAD PANEL ══ -->
+<div class="side-panel" id="apiload-panel">
+  <div class="panel-header">
+    <span class="panel-title" style="color:#f59e0b;">⚡ API Load</span>
+    <button class="panel-close" id="apiload-close">✕</button>
+  </div>
+  <div class="panel-body">
+    <div class="pred-intro" style="border-color:#f59e0b;background:rgba(245,158,11,0.07);">
+      Automatically fetch the last 6 match results for every team in a league and populate their Pre-load History. Uses API-Football (100 free calls/day).
+    </div>
+
+    <!-- League selection -->
+    <div style="font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);">Select League</div>
+    <div style="display:flex;flex-direction:column;gap:0.5rem;" id="api-league-list">
+      <div class="api-league-card" data-league="39" data-season="2025" data-name="Premier League">
+        <div class="api-league-name">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League</div>
+        <div class="api-league-meta">England · 20 teams · ~20 API calls</div>
+      </div>
+      <div class="api-league-card" data-league="40" data-season="2025" data-name="Championship">
+        <div class="api-league-name">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Championship</div>
+        <div class="api-league-meta">England · 24 teams · ~24 API calls</div>
+      </div>
+      <div class="api-league-card" data-league="41" data-season="2025" data-name="League One">
+        <div class="api-league-name">🏴󠁧󠁢󠁥󠁮󠁧󠁿 League One</div>
+        <div class="api-league-meta">England · 24 teams · ~24 API calls</div>
+      </div>
+      <div class="api-league-card" data-league="42" data-season="2025" data-name="League Two">
+        <div class="api-league-name">🏴󠁧󠁢󠁥󠁮󠁧󠁿 League Two</div>
+        <div class="api-league-meta">England · 24 teams · ~24 API calls</div>
+      </div>
+      <div class="api-league-card" data-league="43" data-season="2025" data-name="National League">
+        <div class="api-league-name">🏴󠁧󠁢󠁥󠁮󠁧󠁿 National League</div>
+        <div class="api-league-meta">England · 24 teams · ~24 API calls</div>
+      </div>
+    </div>
+
+    <div id="api-selected-league" style="display:none;flex-direction:column;gap:0.75rem;">
+      <div style="font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);">Selected</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <span id="api-selected-name" style="font-weight:700;color:#f59e0b;font-size:0.95rem;"></span>
+        <button onclick="apiResetSelection()" style="font-size:0.72rem;color:var(--muted);background:none;border:1px solid var(--border);padding:3px 10px;border-radius:6px;cursor:pointer;">Change</button>
+      </div>
+
+      <button class="pred-print-btn" id="api-load-btn" style="background:#f59e0b;border:none;">⚡ Load Last 6 Matches</button>
+
+      <!-- Progress -->
+      <div id="api-progress-section" style="display:none;flex-direction:column;gap:0.5rem;">
+        <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--muted);">
+          <span id="api-progress-label">Fetching teams…</span>
+          <span id="api-progress-count">0 / 0</span>
+        </div>
+        <div class="api-progress-bar">
+          <div class="api-progress-fill" id="api-progress-fill"></div>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div id="api-results-section" style="display:none;flex-direction:column;gap:0.5rem;">
+        <div style="font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);">Results</div>
+        <div id="api-results-list" style="max-height:260px;overflow-y:auto;"></div>
+      </div>
+    </div>
+
+    <div class="pred-status" id="api-status"></div>
+  </div>
+</div>
+
 <!-- ══ PROFILE / PASSWORD MODAL ══ -->
 <div class="pw-overlay" id="pw-overlay">
   <div class="pw-box">
@@ -4453,7 +4554,7 @@ document.getElementById('hist-open-btn').addEventListener('click', () => require
 document.getElementById('hist-close').addEventListener('click', closeHistPanel);
 document.getElementById('avg-open-btn').addEventListener('click', () => requiresAuth(openAvgPanel));
 document.getElementById('avg-close').addEventListener('click', closeAvgPanel);
-document.getElementById('overlay').addEventListener('click', () => { closeHistPanel(); closeAvgPanel(); closeH2HPanel(); closeCombosPanel(); if(typeof closeCompPanel==='function') closeCompPanel(); if(typeof closeSRPanel==='function') closeSRPanel(); if(typeof closePredPanel==='function') closePredPanel(); });
+document.getElementById('overlay').addEventListener('click', () => { closeHistPanel(); closeAvgPanel(); closeH2HPanel(); closeCombosPanel(); if(typeof closeCompPanel==='function') closeCompPanel(); if(typeof closeSRPanel==='function') closeSRPanel(); if(typeof closePredPanel==='function') closePredPanel(); if(typeof closeApiLoadPanel==='function') closeApiLoadPanel(); });
 document.getElementById('h2h-open-btn').addEventListener('click', () => requiresAuth(openH2HPanel));
 document.getElementById('h2h-close').addEventListener('click', closeH2HPanel);
 
@@ -6712,6 +6813,189 @@ function requiresAuth(action) {
   if (_appUnlocked) action();
   else openPwModal();
 }
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+// API LOAD PANEL
+// ══════════════════════════════════════════════════════════════════════════════
+const _AF_KEY = ['f6cddac2','f352a979','04b28bef','e7850c87'].join('');
+const AF_BASE = 'https://matchstats.kkonapple.workers.dev';
+
+let apiSelectedLeague = null;
+
+function openApiLoadPanel() {
+  document.getElementById('apiload-panel').classList.add('open');
+  document.getElementById('overlay').classList.add('visible');
+}
+function closeApiLoadPanel() {
+  document.getElementById('apiload-panel').classList.remove('open');
+  document.getElementById('overlay').classList.remove('visible');
+}
+
+function apiResetSelection() {
+  apiSelectedLeague = null;
+  document.getElementById('api-league-list').style.display = 'flex';
+  document.getElementById('api-selected-league').style.display = 'none';
+  document.getElementById('api-progress-section').style.display = 'none';
+  document.getElementById('api-results-section').style.display = 'none';
+  document.getElementById('api-status').innerHTML = '';
+  document.getElementById('api-status').classList.remove('visible');
+  document.querySelectorAll('.api-league-card').forEach(c => c.classList.remove('selected'));
+}
+
+function apiSetStatus(msg, loading) {
+  const el = document.getElementById('api-status');
+  if (!msg) { el.innerHTML=''; el.classList.remove('visible'); return; }
+  el.classList.add('visible');
+  el.innerHTML = loading ? `<span class="pred-spinner"></span>${msg}` : msg;
+}
+
+async function apiFetch(url) {
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'x-rapidapi-key': _AF_KEY,
+      'x-rapidapi-host': 'v3.football.api-sports.io'
+    }
+  });
+  return res.json();
+}
+
+async function apiLoadLeague() {
+  if (!apiSelectedLeague) return;
+  const { leagueId, season, name } = apiSelectedLeague;
+
+  const loadBtn = document.getElementById('api-load-btn');
+  loadBtn.disabled = true;
+  loadBtn.textContent = '⏳ Loading…';
+
+  const progressSec = document.getElementById('api-progress-section');
+  const resultsSec  = document.getElementById('api-results-section');
+  const progressFill= document.getElementById('api-progress-fill');
+  const progressLbl = document.getElementById('api-progress-label');
+  const progressCnt = document.getElementById('api-progress-count');
+  const resultsList = document.getElementById('api-results-list');
+
+  progressSec.style.display = 'flex';
+  resultsSec.style.display  = 'none';
+  resultsList.innerHTML = '';
+  apiSetStatus('', false);
+
+  try {
+    // Step 1: Get all teams in the league
+    progressLbl.textContent = 'Fetching team list…';
+    progressCnt.textContent = '';
+    progressFill.style.width = '5%';
+
+    const teamsData = await apiFetch(`${AF_BASE}/teams?league=${leagueId}&season=${season}`);
+    const remaining = teamsData.response?.length;
+
+    if (!teamsData.response?.length) {
+      apiSetStatus('❌ No teams found. Check league ID or season.', false);
+      loadBtn.disabled = false; loadBtn.textContent = '⚡ Load Last 6 Matches';
+      return;
+    }
+
+    const teams = teamsData.response;
+    const total = teams.length;
+    let done = 0;
+    let loaded = 0;
+    let skipped = 0;
+
+    progressLbl.textContent = `Loading fixtures…`;
+    progressCnt.textContent = `0 / ${total}`;
+    resultsSec.style.display = 'flex';
+
+    for (const t of teams) {
+      const teamId   = t.team.id;
+      const teamName = t.team.name;
+
+      // Fetch last 6 finished fixtures for this team
+      const fx = await apiFetch(`${AF_BASE}/fixtures?team=${teamId}&league=${leagueId}&season=${season}&last=6&status=FT`);
+
+      done++;
+      const pct = Math.round((done / total) * 100);
+      progressFill.style.width = pct + '%';
+      progressCnt.textContent = `${done} / ${total}`;
+
+      const fixtures = fx.response || [];
+      if (!fixtures.length) {
+        skipped++;
+        resultsList.innerHTML += `<div class="api-result-row">
+          <span class="api-result-icon">⚠️</span>
+          <span class="api-result-team">${esc(teamName)}</span>
+          <span class="api-result-scores">No data</span>
+        </div>`;
+        continue;
+      }
+
+      // Extract total goals per match (last 6, oldest first)
+      const scores = fixtures.reverse().map(f => {
+        const hg = f.goals.home ?? 0;
+        const ag = f.goals.away ?? 0;
+        return hg + ag;
+      });
+
+      // Save into hist under this profile
+      hist[teamName] = { league: name, scores };
+      loaded++;
+
+      const scoreStr = scores.join(', ');
+      resultsList.innerHTML += `<div class="api-result-row">
+        <span class="api-result-icon">✅</span>
+        <span class="api-result-team">${esc(teamName)}</span>
+        <span class="api-result-scores">${scoreStr}</span>
+      </div>`;
+
+      // Small delay to avoid rate limiting
+      await new Promise(r => setTimeout(r, 200));
+    }
+
+    // Save to storage
+    saveHist();
+    progressFill.classList.add('done');
+    progressFill.style.width = '100%';
+    progressLbl.textContent = 'Complete!';
+    apiSetStatus(`✅ Loaded ${loaded} teams · ${skipped} skipped · data saved to ${_activeProfile} profile`, false);
+    loadBtn.textContent = '✅ Done';
+    renderHistSavedList();
+    showToast(`✅ ${loaded} teams loaded for ${name}`, 'success');
+
+  } catch(err) {
+    apiSetStatus('❌ Error: ' + err.message, false);
+    loadBtn.disabled = false;
+    loadBtn.textContent = '⚡ Load Last 6 Matches';
+  }
+}
+
+// Wire up league cards
+document.addEventListener('DOMContentLoaded', () => {
+  const openBtn = document.getElementById('apiload-open-btn');
+  const closeBtn= document.getElementById('apiload-close');
+  const loadBtn = document.getElementById('api-load-btn');
+  if (openBtn)  openBtn.addEventListener('click', () => requiresAuth(openApiLoadPanel));
+  if (closeBtn) closeBtn.addEventListener('click', closeApiLoadPanel);
+  if (loadBtn)  loadBtn.addEventListener('click', apiLoadLeague);
+
+  document.querySelectorAll('.api-league-card').forEach(card => {
+    card.addEventListener('click', () => {
+      document.querySelectorAll('.api-league-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      apiSelectedLeague = {
+        leagueId: card.dataset.league,
+        season:   card.dataset.season,
+        name:     card.dataset.name
+      };
+      document.getElementById('api-selected-name').textContent = card.querySelector('.api-league-name').textContent;
+      document.getElementById('api-league-list').style.display = 'none';
+      document.getElementById('api-selected-league').style.display = 'flex';
+      document.getElementById('api-progress-section').style.display = 'none';
+      document.getElementById('api-results-section').style.display = 'none';
+      document.getElementById('api-load-btn').disabled = false;
+      document.getElementById('api-load-btn').textContent = '⚡ Load Last 6 Matches';
+    });
+  });
+});
 
 // ── BOOT ──────────────────────────────────────────────────────────────────────
 loadLeagues();
