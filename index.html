@@ -860,8 +860,8 @@
 <div class="container">
   <header>
     <div class="header-left">
-      <h1>MATCH <span>GOALS</span> TRACKER</h1>
-      <p class="subtitle">Daily results · Over / Under 2.5</p>
+      <h1>MATCH <span>TRACKER</span> <span style="font-size:0.55em;color:var(--muted);letter-spacing:0.06em;vertical-align:middle;">BETA v1.0</span></h1>
+      <p class="subtitle">Daily results</p>
     </div>
     <div class="header-btns">
       <button class="hdr-btn hdr-btn-save" id="save-to-file-btn" title="Save all current data to browser storage">💾 Save</button>
@@ -6216,23 +6216,29 @@ async function predScanImage() {
     : 'image/jpeg'; // fallback
 
   try {
-    // Build known teams list from the system to help AI match names
-    const knownTeams = Object.values(LEAGUES).flat().join(', ');
+    // Build known teams list — sent to AI so it can match exactly
+    const knownTeams = Object.values(LEAGUES).flat().sort();
+    const teamListStr = knownTeams.join('\n');
 
-    const prompt = `Extract all football/soccer match selections from this betting slip image.
+    const prompt = `You are reading a football/soccer betting slip image. The slip may be in ANY language (English, Greek, etc).
 
-The betting slip may be in ANY language including Greek. You MUST translate all team names to English.
+Your job:
+1. Identify each match selection on the slip
+2. For each team name shown (in any language), find the EXACT matching team from the OFFICIAL LIST below
+3. Return ONLY the exact English team names from the list — never return transliterations or translations
 
-Here are the known English team names in the system — match each team from the slip to the closest one from this list:
-${knownTeams}
+OFFICIAL TEAM LIST (use ONLY names from this list):
+${teamListStr}
 
-Rules:
-- Translate Greek or any other language team names to their English equivalent
-- Match translated names to the closest team from the known list above
-- If a team is not in the list, still provide your best English translation
-- Return ONLY a raw JSON array, no markdown, no explanation:
-[{"homeTeam":"English Team Name","awayTeam":"English Team Name","market":"Over 2.5"},...]
-- Default market to Over 2.5 if not shown`;
+IMPORTANT RULES:
+- You MUST return exact names from the Official Team List above
+- If the slip shows Greek text like "ΜΚ Ντονζ", match it to "MK Dons" from the list
+- If the slip shows "Μπαρνέτ", match it to "Barnet" from the list
+- Never invent names — always pick the closest match from the Official Team List
+- If you genuinely cannot match a team, use your best English translation
+- Return ONLY a raw JSON array, no markdown, no code fences, no explanation:
+[{"homeTeam":"Exact Name From List","awayTeam":"Exact Name From List","market":"Over 2.5"},...]
+- Default market to Over 2.5 if not visible on the slip`;
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -6288,7 +6294,7 @@ function renderPredMatches() {
   const printBtn = document.getElementById('pred-print-btn');
   if (!section || !list) return;
   section.style.display = 'flex';
-  printBtn.disabled = !predSelections.some(s => s.dA || s.dB);
+  printBtn.disabled = predSelections.length === 0;
   list.innerHTML = predSelections.map((s) => {
     const hasData = s.dA || s.dB;
     const avgA = s.dA ? s.dA.avg : '—';
