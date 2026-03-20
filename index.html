@@ -3831,57 +3831,31 @@
     <button class="panel-close" id="pred-close">✕</button>
   </div>
   <div class="panel-body">
-    <!-- API Key (stored in localStorage, never sent anywhere except Anthropic) -->
-    <div id="pred-apikey-section">
-      <div class="pred-intro" style="border-color:#f59e0b;background:rgba(245,158,11,0.07);">
-        📷 <strong>Image Upload</strong> — Paste your Anthropic API key once to enable AI reading of betting slips. It's saved locally and never shared.<br><br>
-        Get a free key at <strong>console.anthropic.com</strong>
-      </div>
-      <div class="field" style="margin-top:0.5rem;">
-        <label>Anthropic API Key</label>
-        <div style="display:flex;gap:0.5rem;">
-          <input type="password" id="pred-apikey-input" placeholder="sk-ant-..." autocomplete="off" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.88rem;padding:9px 12px;border-radius:10px;outline:none;">
-          <button id="pred-apikey-save-btn" class="pred-print-btn" style="flex-shrink:0;padding:9px 16px;font-size:0.85rem;">
-            Save
-          </button>
-        </div>
-        <div id="pred-apikey-status" style="font-size:0.72rem;color:var(--muted);margin-top:4px;"></div>
-      </div>
+    <div class="pred-intro">
+      Upload a photo of your betting slip — AI reads the teams instantly. Or type them manually below.
     </div>
 
-    <div style="border-top:1px solid var(--border);padding-top:0.75rem;">
-      <div style="font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:0.6rem;">
-        Input Method
-      </div>
-      <!-- Tab switcher -->
-      <div style="display:flex;gap:0.5rem;margin-bottom:0.75rem;">
-        <button id="pred-tab-image" class="filter-chip active" onclick="predSwitchTab('image')" style="font-family:'DM Sans',sans-serif;font-size:0.8rem;font-weight:600;">📷 Upload Image</button>
-        <button id="pred-tab-text"  class="filter-chip" onclick="predSwitchTab('text')" style="font-family:'DM Sans',sans-serif;font-size:0.8rem;font-weight:600;">✏️ Type Manually</button>
-      </div>
-
-      <!-- Image tab -->
-      <div id="pred-tab-image-content">
-        <div class="pred-upload-area" id="pred-upload-area">
-          <div class="pred-upload-icon">📷</div>
-          <div class="pred-upload-label">Tap or drag to upload your betting slip</div>
-          <div class="pred-upload-sub">JPG, PNG, WEBP · AI will read the teams automatically</div>
-        </div>
-        <input type="file" id="pred-file-input" accept="image/*" style="display:none">
-        <div id="pred-thumb-wrap" style="display:none;margin-top:0.5rem;">
-          <img id="pred-thumb" style="max-width:100%;max-height:160px;border-radius:8px;object-fit:contain;" alt="preview">
-        </div>
-        <button class="pred-print-btn" id="pred-scan-btn" style="margin-top:0.6rem;display:none;">🔍 Scan Image</button>
-      </div>
-
-      <!-- Text tab -->
-      <div id="pred-tab-text-content" style="display:none;">
-        <div class="field">
-          <label>One match per line — Team A vs Team B</label>
-          <textarea id="pred-textarea" rows="5" placeholder="MK Dons vs Barnet&#10;Cambridge United vs Salford City&#10;Bromley vs Colchester United" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.88rem;padding:10px 12px;border-radius:10px;outline:none;resize:vertical;line-height:1.6;"></textarea>
-        </div>
-        <button class="pred-print-btn" id="pred-analyse-btn" style="margin-top:0">🔍 Analyse Selections</button>
-      </div>
+    <div class="pred-upload-area" id="pred-upload-area">
+      <div class="pred-upload-icon">📷</div>
+      <div class="pred-upload-label">Tap or drag your betting slip here</div>
+      <div class="pred-upload-sub">JPG · PNG · WEBP — no API key needed</div>
     </div>
+    <input type="file" id="pred-file-input" accept="image/*" style="display:none">
+    <div id="pred-thumb-wrap" style="display:none;margin-top:0.5rem;text-align:center;">
+      <img id="pred-thumb" style="max-width:100%;max-height:150px;border-radius:8px;object-fit:contain;" alt="preview">
+    </div>
+    <button class="pred-print-btn" id="pred-scan-btn" style="display:none;margin-top:0.5rem;">🔍 Read Slip with AI</button>
+
+    <div style="display:flex;align-items:center;gap:0.5rem;margin:0.5rem 0;">
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+      <span style="font-size:0.7rem;color:var(--muted);font-weight:600;white-space:nowrap;">OR TYPE MANUALLY</span>
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+    </div>
+
+    <div class="field" style="margin-top:0;">
+      <textarea id="pred-textarea" rows="4" placeholder="MK Dons vs Barnet&#10;Cambridge United vs Salford City&#10;Bromley vs Colchester United" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.88rem;padding:10px 12px;border-radius:10px;outline:none;resize:vertical;line-height:1.6;"></textarea>
+    </div>
+    <button class="pred-print-btn" id="pred-analyse-btn" style="margin-top:0;">🔍 Analyse Selections</button>
 
     <div class="pred-status" id="pred-status"></div>
 
@@ -6148,7 +6122,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // ══════════════════════════════════════════════════════════════════════════════
 // PREDICTIONS PANEL
 // ══════════════════════════════════════════════════════════════════════════════
-let predSelections = []; // [{homeTeam, awayTeam, market, dataA, dataB}]
+let predSelections = [];
 
 function openPredPanel() {
   const p = document.getElementById('pred-panel');
@@ -6166,75 +6140,65 @@ function closePredPanel() {
 function predSetStatus(msg, loading) {
   const el = document.getElementById('pred-status');
   if (!el) return;
+  if (!msg) { el.classList.remove('visible'); el.innerHTML = ''; return; }
   el.classList.add('visible');
-  el.innerHTML = loading
-    ? `<span class="pred-spinner"></span>${msg}`
-    : msg;
-  if (!msg) el.classList.remove('visible');
+  el.innerHTML = loading ? `<span class="pred-spinner"></span>${msg}` : msg;
 }
 
 function predClear() {
   predSelections = [];
-  const ta = document.getElementById('pred-textarea');
-  if (ta) ta.value = '';
+  const ta = document.getElementById('pred-textarea'); if (ta) ta.value = '';
   const fi = document.getElementById('pred-file-input'); if (fi) fi.value = '';
   const tw = document.getElementById('pred-thumb-wrap'); if (tw) tw.style.display = 'none';
-  const sb = document.getElementById('pred-scan-btn'); if (sb) sb.style.display = localStorage.getItem('predApiKey_v1') ? 'block' : 'none';
+  const sb = document.getElementById('pred-scan-btn'); if (sb) sb.style.display = 'none';
   predSetStatus('', false);
-  const ms = document.getElementById('pred-match-section');
-  if (ms) ms.style.display = 'none';
-  const pb = document.getElementById('pred-print-btn');
-  if (pb) pb.disabled = true;
+  const ms = document.getElementById('pred-match-section'); if (ms) ms.style.display = 'none';
+  const pb = document.getElementById('pred-print-btn'); if (pb) pb.disabled = true;
 }
 
-
-// ── PREDICTIONS IMAGE HANDLING ────────────────────────────────────────────────
-const PRED_APIKEY_KEY = 'predApiKey_v1';
-
-function predInitApiKey() {
-  const saved = localStorage.getItem(PRED_APIKEY_KEY) || '';
-  const input = document.getElementById('pred-apikey-input');
-  const statusEl = document.getElementById('pred-apikey-status');
-  if (input && saved) {
-    input.value = saved;
-    if (statusEl) statusEl.innerHTML = '✅ API key saved — image upload enabled';
-    if (statusEl) statusEl.style.color = '#22c55e';
-    const scanBtn = document.getElementById('pred-scan-btn');
-    if (scanBtn) scanBtn.style.display = 'block';
-  }
+function predFuzzyFind(name) {
+  const n = name.toLowerCase().trim();
+  const hE = Object.keys(hist).find(t => t.toLowerCase() === n); if (hE) return hE;
+  for (const ts of Object.values(LEAGUES)) { const e = ts.find(t => t.toLowerCase() === n); if (e) return e; }
+  const hP = Object.keys(hist).find(t => t.toLowerCase().includes(n) || n.includes(t.toLowerCase())); if (hP) return hP;
+  for (const ts of Object.values(LEAGUES)) { const p = ts.find(t => t.toLowerCase().includes(n) || n.includes(t.toLowerCase())); if (p) return p; }
+  return name;
 }
 
-function predSaveApiKey() {
-  const input = document.getElementById('pred-apikey-input');
-  const statusEl = document.getElementById('pred-apikey-status');
-  const key = input ? input.value.trim() : '';
-  if (!key.startsWith('sk-ant-')) {
-    if (statusEl) { statusEl.innerHTML = '❌ Invalid key — must start with sk-ant-'; statusEl.style.color = '#ef4444'; }
-    return;
-  }
-  localStorage.setItem(PRED_APIKEY_KEY, key);
-  if (statusEl) { statusEl.innerHTML = '✅ Saved — image upload enabled'; statusEl.style.color = '#22c55e'; }
-  const scanBtn = document.getElementById('pred-scan-btn');
-  if (scanBtn) scanBtn.style.display = 'block';
-  showToast('✅ API key saved', 'success');
+function predBuildSelections(parsed) {
+  return parsed.map(sel => {
+    const homeTeam = predFuzzyFind(sel.homeTeam);
+    const awayTeam = predFuzzyFind(sel.awayTeam);
+    return {
+      homeTeam, awayTeam,
+      market: sel.market || 'Over 2.5',
+      dA: teamAvg(homeTeam), dB: teamAvg(awayTeam),
+      goalsA: getTeamGoalHistory(homeTeam),
+      goalsB: getTeamGoalHistory(awayTeam)
+    };
+  });
 }
 
-function predSwitchTab(tab) {
-  document.getElementById('pred-tab-image-content').style.display = tab === 'image' ? 'block' : 'none';
-  document.getElementById('pred-tab-text-content').style.display  = tab === 'text'  ? 'block' : 'none';
-  document.getElementById('pred-tab-image').classList.toggle('active', tab === 'image');
-  document.getElementById('pred-tab-text').classList.toggle('active', tab === 'text');
-  predSetStatus('', false);
+// ── Image upload & AI scan ────────────────────────────────────────────────────
+function predShowThumb(file) {
+  const r = new FileReader();
+  r.onload = e => {
+    const img  = document.getElementById('pred-thumb');
+    const wrap = document.getElementById('pred-thumb-wrap');
+    const sb   = document.getElementById('pred-scan-btn');
+    if (img)  img.src = e.target.result;
+    if (wrap) wrap.style.display = 'block';
+    if (sb)   sb.style.display = 'block';
+  };
+  r.readAsDataURL(file);
 }
 
 async function predScanImage() {
-  const key = localStorage.getItem(PRED_APIKEY_KEY);
-  if (!key) { predSetStatus('❌ Please save your API key first.', false); return; }
   const input = document.getElementById('pred-file-input');
   if (!input || !input.files[0]) { predSetStatus('❌ Please select an image first.', false); return; }
   const file = input.files[0];
 
-  predSetStatus('Reading betting slip with AI…', true);
+  predSetStatus('Reading your betting slip…', true);
   document.getElementById('pred-match-section').style.display = 'none';
 
   const b64 = await new Promise(res => {
@@ -6248,35 +6212,28 @@ async function predScanImage() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': key,
         'anthropic-version': '2023-06-01',
         'anthropic-dangerous-direct-browser-access': 'true'
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 800,
+        max_tokens: 1000,
         messages: [{
           role: 'user',
           content: [
             { type: 'image', source: { type: 'base64', media_type: file.type, data: b64 } },
-            { type: 'text', text: 'Extract all football/soccer match selections from this betting slip. Return ONLY a JSON array, no markdown: [{homeTeam,awayTeam,market}]. Extract team names exactly as shown. Default market to Over 2.5 if unclear.' }
+            { type: 'text', text: 'Extract all football/soccer match selections from this betting slip image. Return ONLY a raw JSON array with no markdown fences or explanation: [{"homeTeam":"Team A","awayTeam":"Team B","market":"Over 2.5"},...]. Use the exact team names shown. Default market to Over 2.5 if not visible.' }
           ]
         }]
       })
     });
     const data = await response.json();
     if (data.error) throw new Error(data.error.message);
-    const raw = data.content && data.content[0] && data.content[0].text;
-    if (!raw) throw new Error('No response');
-    const parsed = JSON.parse(raw.replace(/```json|```/g,'').trim());
-    if (!Array.isArray(parsed) || !parsed.length) throw new Error('No selections found');
-
-    predSelections = parsed.map(sel => {
-      const homeTeam = predFuzzyFind(sel.homeTeam), awayTeam = predFuzzyFind(sel.awayTeam);
-      return { homeTeam, awayTeam, market: sel.market || 'Over 2.5',
-        dA: teamAvg(homeTeam), dB: teamAvg(awayTeam),
-        goalsA: getTeamGoalHistory(homeTeam), goalsB: getTeamGoalHistory(awayTeam) };
-    });
+    const raw = data.content?.[0]?.text;
+    if (!raw) throw new Error('No response from AI');
+    const parsed = JSON.parse(raw.replace(/```json|```/g, '').trim());
+    if (!Array.isArray(parsed) || !parsed.length) throw new Error('No selections found in image');
+    predSelections = predBuildSelections(parsed);
     predSetStatus('', false);
     renderPredMatches();
   } catch(err) {
@@ -6284,69 +6241,41 @@ async function predScanImage() {
   }
 }
 
-function predFuzzyFind(name) {
-  const n = name.toLowerCase().trim();
-  const hE = Object.keys(hist).find(t => t.toLowerCase() === n); if (hE) return hE;
-  for (const ts of Object.values(LEAGUES)) { const e = ts.find(t => t.toLowerCase() === n); if (e) return e; }
-  const hP = Object.keys(hist).find(t => t.toLowerCase().includes(n) || n.includes(t.toLowerCase())); if (hP) return hP;
-  for (const ts of Object.values(LEAGUES)) { const p = ts.find(t => t.toLowerCase().includes(n) || n.includes(t.toLowerCase())); if (p) return p; }
-  return name;
-}
-
+// ── Manual text entry ─────────────────────────────────────────────────────────
 function predAnalyse() {
-  const textarea = document.getElementById('pred-textarea');
-  const raw = textarea ? textarea.value.trim() : '';
-  if (!raw) { predSetStatus('Please enter at least one selection.', false); return; }
-  const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
-  const parsed = lines.map(line => {
+  const raw = (document.getElementById('pred-textarea')?.value || '').trim();
+  if (!raw) { predSetStatus('Please enter at least one match.', false); return; }
+  const parsed = raw.split('\n').map(l => l.trim()).filter(Boolean).map(line => {
     const m = line.match(/^(.+?)\s+(?:vs\.?|-)\s+(.+)$/i);
     return m ? { homeTeam: m[1].trim(), awayTeam: m[2].trim(), market: 'Over 2.5' } : null;
   }).filter(Boolean);
   if (!parsed.length) { predSetStatus('\u274C Use format: Team A vs Team B', false); return; }
-  function fuzzyFind(name) {
-    const n = name.toLowerCase().trim();
-    const hE = Object.keys(hist).find(t => t.toLowerCase() === n); if (hE) return hE;
-    for (const ts of Object.values(LEAGUES)) { const e = ts.find(t => t.toLowerCase() === n); if (e) return e; }
-    const hP = Object.keys(hist).find(t => t.toLowerCase().includes(n) || n.includes(t.toLowerCase())); if (hP) return hP;
-    for (const ts of Object.values(LEAGUES)) { const p = ts.find(t => t.toLowerCase().includes(n) || n.includes(t.toLowerCase())); if (p) return p; }
-    return name;
-  }
-  predSelections = parsed.map(sel => {
-    const homeTeam = predFuzzyFind(sel.homeTeam), awayTeam = predFuzzyFind(sel.awayTeam);
-    return { homeTeam, awayTeam, market: sel.market, dA: teamAvg(homeTeam), dB: teamAvg(awayTeam),
-      goalsA: getTeamGoalHistory(homeTeam), goalsB: getTeamGoalHistory(awayTeam) };
-  });
+  predSelections = predBuildSelections(parsed);
   predSetStatus('', false);
   renderPredMatches();
 }
 
 function renderPredMatches() {
-  const section = document.getElementById('pred-match-section');
-  const list    = document.getElementById('pred-match-list');
-  const printBtn= document.getElementById('pred-print-btn');
+  const section  = document.getElementById('pred-match-section');
+  const list     = document.getElementById('pred-match-list');
+  const printBtn = document.getElementById('pred-print-btn');
   if (!section || !list) return;
-
   section.style.display = 'flex';
-  const hasAny = predSelections.some(s => s.dA || s.dB);
-  printBtn.disabled = !hasAny;
-
-  list.innerHTML = predSelections.map((s, i) => {
+  printBtn.disabled = !predSelections.some(s => s.dA || s.dB);
+  list.innerHTML = predSelections.map((s) => {
     const hasData = s.dA || s.dB;
     const avgA = s.dA ? s.dA.avg : '—';
     const avgB = s.dB ? s.dB.avg : '—';
-    const icon = hasData ? '✅' : '⚠️';
-    const note = hasData
-      ? `${s.homeTeam}: ${avgA} avg · ${s.awayTeam}: ${avgB} avg`
-      : 'No pre-loaded history for these teams';
-    return `<div class="pred-match-item ${hasData?'':'no-data'}">
-      <span class="pred-match-icon">${icon}</span>
+    return `<div class="pred-match-item ${hasData ? '' : 'no-data'}">
+      <span class="pred-match-icon">${hasData ? '✅' : '⚠️'}</span>
       <div style="flex:1">
         <div class="pred-match-teams">${esc(s.homeTeam)} vs ${esc(s.awayTeam)}</div>
-        <div class="pred-match-note">${esc(s.market)} · ${note}</div>
+        <div class="pred-match-note">${esc(s.market)} · ${hasData ? `${s.homeTeam}: ${avgA} · ${s.awayTeam}: ${avgB}` : 'No history — add via Pre-load History'}</div>
       </div>
     </div>`;
   }).join('');
 }
+
 
 function predGenerateReport() {
   if (!predSelections.length) return;
@@ -6358,22 +6287,20 @@ function predGenerateReport() {
   const dateStr = new Date().toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'});
 
   const rows = predSelections.map((s, idx) => {
-    const avgA    = s.dA ? parseFloat(s.dA.avg) : null;
-    const avgB    = s.dB ? parseFloat(s.dB.avg) : null;
+    const avgA     = s.dA ? parseFloat(s.dA.avg) : null;
+    const avgB     = s.dB ? parseFloat(s.dB.avg) : null;
     const combined = (avgA !== null && avgB !== null) ? ((avgA + avgB) / 2).toFixed(2) : null;
     const sumTotal = (avgA !== null && avgB !== null) ? (avgA + avgB).toFixed(2) : null;
     const sumColor = sumTotal ? (parseFloat(sumTotal) > 3 ? '#27F53C' : parseFloat(sumTotal) >= 2 ? '#f97316' : '#ef4444') : '#999';
 
-    // Over 2.5 success rate
-    const goalsA = s.goalsA || [];
-    const goalsB = s.goalsB || [];
+    const goalsA  = s.goalsA || [];
+    const goalsB  = s.goalsB || [];
     const playedA = goalsA.filter(g => g !== 'P');
     const playedB = goalsB.filter(g => g !== 'P');
     const sr25A = playedA.length ? Math.round((playedA.filter(g=>g>2.5).length/playedA.length)*100) : null;
     const sr25B = playedB.length ? Math.round((playedB.filter(g=>g>2.5).length/playedB.length)*100) : null;
     const sr15A = playedA.length ? Math.round((playedA.filter(g=>g>1.5).length/playedA.length)*100) : null;
     const sr15B = playedB.length ? Math.round((playedB.filter(g=>g>1.5).length/playedB.length)*100) : null;
-
     const srColor = v => v >= 67 ? '#22c55e' : v >= 50 ? '#84cc16' : v >= 33 ? '#f97316' : '#ef4444';
 
     const noData = avgA === null && avgB === null;
@@ -6385,9 +6312,8 @@ function predGenerateReport() {
           <span class="match-title">${escH(s.homeTeam)} <span class="vs">vs</span> ${escH(s.awayTeam)}</span>
           <span class="match-market">${escH(s.market)}</span>
         </div>
-        ${noData ? `<div class="no-data-msg">⚠️ No pre-loaded history for these teams. Add them via Pre-load History.</div>` : `
+        ${noData ? `<div class="no-data-msg">⚠️ No pre-loaded history for these teams.</div>` : `
         <div class="stats-row">
-          <!-- Team A -->
           <div class="team-col">
             <div class="team-name">${escH(s.homeTeam)}</div>
             <div class="avg-big" style="color:${avgA!==null?(avgA>2.5?'#22c55e':avgA>1.5?'#f97316':'#ef4444'):'#999'}">${avgA !== null ? avgA.toFixed(2) : '—'}</div>
@@ -6395,17 +6321,15 @@ function predGenerateReport() {
             ${sr25A !== null ? `<div class="sr-pill" style="color:${srColor(sr25A)}">O2.5: ${sr25A}%</div>` : ''}
             ${sr15A !== null ? `<div class="sr-pill" style="color:${srColor(sr15A)}">O1.5: ${sr15A}%</div>` : ''}
           </div>
-          <!-- Combined -->
           <div class="combined-col">
             ${combined !== null ? `
-            <div class="combined-label">Combined</div>
-            <div class="combined-avg" style="color:#000">${combined}</div>
-            <div class="sep">/</div>
-            <div class="sum-val" style="color:${sumColor}">${sumTotal}</div>
-            <div class="sum-lbl">Sum</div>
+              <div class="combined-label">Combined</div>
+              <div class="combined-avg" style="color:#000">${combined}</div>
+              <div class="sep">/</div>
+              <div class="sum-val" style="color:${sumColor}">${sumTotal}</div>
+              <div class="sum-lbl">Sum</div>
             ` : '<div class="no-calc">—</div>'}
           </div>
-          <!-- Team B -->
           <div class="team-col right">
             <div class="team-name">${escH(s.awayTeam)}</div>
             <div class="avg-big" style="color:${avgB!==null?(avgB>2.5?'#22c55e':avgB>1.5?'#f97316':'#ef4444'):'#999'}">${avgB !== null ? avgB.toFixed(2) : '—'}</div>
@@ -6432,7 +6356,6 @@ function predGenerateReport() {
   .legend { display:flex; gap:14px; flex-wrap:wrap; background:#f7f7f9; border-radius:8px; padding:7px 14px; margin-bottom:18px; font-size:8pt; }
   .legend-item { display:flex; align-items:center; gap:5px; }
   .dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
-
   .match-block { border:1px solid #e0e0e0; border-radius:12px; padding:14px 16px; margin-bottom:14px; page-break-inside:avoid; }
   .match-block.no-data { opacity:0.6; }
   .match-header { display:flex; align-items:center; gap:10px; margin-bottom:12px; border-bottom:1px solid #eee; padding-bottom:8px; }
@@ -6440,7 +6363,6 @@ function predGenerateReport() {
   .match-title { flex:1; font-size:12pt; font-weight:800; color:#1a1a2e; }
   .match-title .vs { color:#aaa; font-weight:400; font-size:10pt; }
   .match-market { font-size:8pt; font-weight:700; background:#e0f2fe; color:#0ea5e9; padding:3px 9px; border-radius:20px; white-space:nowrap; }
-
   .stats-row { display:grid; grid-template-columns:1fr auto 1fr; gap:12px; align-items:center; }
   .team-col { display:flex; flex-direction:column; gap:3px; }
   .team-col.right { text-align:right; align-items:flex-end; }
@@ -6448,7 +6370,6 @@ function predGenerateReport() {
   .avg-big { font-size:26pt; font-weight:800; line-height:1; }
   .avg-lbl { font-size:7pt; color:#aaa; text-transform:uppercase; letter-spacing:0.08em; }
   .sr-pill { font-size:8.5pt; font-weight:700; margin-top:2px; }
-
   .combined-col { display:flex; flex-direction:column; align-items:center; gap:1px; border-left:1px solid #eee; border-right:1px solid #eee; padding:0 14px; }
   .combined-label { font-size:7pt; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:#aaa; }
   .combined-avg { font-size:20pt; font-weight:800; color:#000; line-height:1; }
@@ -6456,13 +6377,10 @@ function predGenerateReport() {
   .sum-val { font-size:20pt; font-weight:800; line-height:1; }
   .sum-lbl { font-size:7pt; color:#aaa; text-transform:uppercase; letter-spacing:0.08em; }
   .no-calc { font-size:18pt; color:#ccc; }
-
   .no-data-msg { font-size:9pt; color:#aaa; font-style:italic; text-align:center; padding:10px 0; }
-
   @media print { body { padding:10mm 12mm; } .no-print { display:none; } }
   .print-bar { position:fixed; bottom:20px; right:20px; display:flex; gap:10px; }
   .print-btn { background:#0ea5e9; color:#fff; border:none; padding:10px 22px; border-radius:8px; font-size:11pt; font-weight:700; cursor:pointer; }
-  .print-btn:hover { background:#0284c7; }
   .close-btn { background:#f1f1f3; color:#444; border:none; padding:10px 18px; border-radius:8px; font-size:11pt; font-weight:600; cursor:pointer; }
 </style>
 </head>
@@ -6470,7 +6388,7 @@ function predGenerateReport() {
 <div class="header">
   <div>
     <h1>🔮 Predictions Report</h1>
-    <p>Match Goals Tracker · ${predSelections.length} selection${predSelections.length!==1?'s':''} · Based on pre-loaded history</p>
+    <p>${predSelections.length} selection${predSelections.length!==1?'s':''} · Based on pre-loaded history</p>
   </div>
   <div class="header-right">${dateStr}</div>
 </div>
@@ -6492,12 +6410,13 @@ ${rows}
 </html>`;
 
   const win = window.open('', '_blank', 'width=900,height=700');
-  if (!win) { showToast('⚠️ Pop-up blocked — please allow pop-ups', 'error'); return; }
+  if (!win) { showToast('⚠️ Pop-up blocked — allow pop-ups for this site', 'error'); return; }
   win.document.open();
   win.document.write(html);
   win.document.close();
   showToast('✅ Report ready — click "Save as PDF"', 'success');
 }
+
 
 document.addEventListener('DOMContentLoaded', () => {
   const pob = document.getElementById('pred-open-btn');
@@ -6509,18 +6428,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const pfi = document.getElementById('pred-file-input');
   const pua = document.getElementById('pred-upload-area');
   const psb = document.getElementById('pred-scan-btn');
-  const pak = document.getElementById('pred-apikey-save-btn');
 
-  if (pob) pob.addEventListener('click', () => { openPredPanel(); predInitApiKey(); });
+  if (pob) pob.addEventListener('click', () => requiresAuth(openPredPanel));
   if (pcl) pcl.addEventListener('click', closePredPanel);
   if (ppr) ppr.addEventListener('click', predGenerateReport);
   if (pcb) pcb.addEventListener('click', predClear);
   if (pan) pan.addEventListener('click', predAnalyse);
-  if (pta) pta.addEventListener('keydown', e => { if ((e.ctrlKey||e.metaKey) && e.key==='Enter') predAnalyse(); });
-  if (pak) pak.addEventListener('click', predSaveApiKey);
   if (psb) psb.addEventListener('click', predScanImage);
+  if (pta) pta.addEventListener('keydown', e => { if ((e.ctrlKey||e.metaKey) && e.key==='Enter') predAnalyse(); });
 
-  // Image upload area
   if (pua && pfi) {
     pua.addEventListener('click', () => pfi.click());
     pua.addEventListener('dragover', e => { e.preventDefault(); pua.style.borderColor='#0ea5e9'; });
@@ -6531,28 +6447,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (f) { pfi.files = e.dataTransfer.files; predShowThumb(f); }
     });
   }
-  if (pfi) pfi.addEventListener('change', e => {
-    if (e.target.files[0]) predShowThumb(e.target.files[0]);
-  });
+  if (pfi) pfi.addEventListener('change', e => { if (e.target.files[0]) predShowThumb(e.target.files[0]); });
 });
 
-function predShowThumb(file) {
-  const r = new FileReader();
-  r.onload = e => {
-    const img = document.getElementById('pred-thumb');
-    const wrap = document.getElementById('pred-thumb-wrap');
-    if (img) img.src = e.target.result;
-    if (wrap) wrap.style.display = 'block';
-    const sb = document.getElementById('pred-scan-btn');
-    if (sb && localStorage.getItem('predApiKey_v1')) sb.style.display = 'block';
-  };
-  r.readAsDataURL(file);
-}
-
-
-// ══════════════════════════════════════════════════════════════════════════════
-// PASSWORD LOCK
-// ══════════════════════════════════════════════════════════════════════════════
 // ══════════════════════════════════════════════════════════════════════════════
 // PROFILE & PASSWORD SYSTEM
 // ══════════════════════════════════════════════════════════════════════════════
