@@ -6207,6 +6207,14 @@ async function predScanImage() {
     r.readAsDataURL(file);
   });
 
+  // Normalise media type — API only accepts jpeg, png, gif, webp
+  const rawType = file.type.toLowerCase();
+  const mediaType = rawType === 'image/jpg' || rawType === 'image/jpeg' ? 'image/jpeg'
+    : rawType === 'image/png'  ? 'image/png'
+    : rawType === 'image/gif'  ? 'image/gif'
+    : rawType === 'image/webp' ? 'image/webp'
+    : 'image/jpeg'; // fallback
+
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -6222,7 +6230,7 @@ async function predScanImage() {
         messages: [{
           role: 'user',
           content: [
-            { type: 'image', source: { type: 'base64', media_type: file.type, data: b64 } },
+            { type: 'image', source: { type: 'base64', media_type: mediaType, data: b64 } },
             { type: 'text', text: 'Extract all football/soccer match selections from this betting slip image. Return ONLY a raw JSON array with no markdown fences or explanation: [{"homeTeam":"Team A","awayTeam":"Team B","market":"Over 2.5"},...]. Use the exact team names shown. Default market to Over 2.5 if not visible.' }
           ]
         }]
