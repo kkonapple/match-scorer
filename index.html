@@ -6891,7 +6891,8 @@ async function apiLoadLeague() {
     const remaining = teamsData.response?.length;
 
     if (!teamsData.response?.length) {
-      apiSetStatus('❌ No teams found. Check league ID or season.', false);
+      const errMsg = teamsData.errors ? JSON.stringify(teamsData.errors) : JSON.stringify(teamsData).slice(0,120);
+      apiSetStatus('❌ No teams found: ' + errMsg, false);
       loadBtn.disabled = false; loadBtn.textContent = '⚡ Load Last 6 Matches';
       return;
     }
@@ -6962,7 +6963,7 @@ async function apiLoadLeague() {
     showToast(`✅ ${loaded} teams loaded for ${name}`, 'success');
 
   } catch(err) {
-    apiSetStatus('❌ Error: ' + err.message, false);
+    apiSetStatus('❌ ' + err.message + ' — Check worker URL and API key', false);
     loadBtn.disabled = false;
     loadBtn.textContent = '⚡ Load Last 6 Matches';
   }
